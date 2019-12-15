@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Document</title>
+    <!-- 导入页面的基本样式 -->
+    <link rel="stylesheet" href="./css/search.css" />
+    <!-- 导入 jQuery -->
+    <script src="./lib/jquery.js"></script>
+    <!-- 导入模板引擎 -->
+    <script src="./lib/template-web.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Logo -->
+        <img src="./images/taobao_logo.png" alt="" class="logo" />
+
+        <div class="box">
+            <!-- tab 栏 -->
+            <div class="tabs">
+                <div class="tab-active">宝贝</div>
+                <div>店铺</div>
+            </div>
+            <!-- 搜索区域（搜索框和搜索按钮） -->
+            <div class="search-box">
+                <input id="ipt" type="text" class="ipt" placeholder="请输入要搜索的内容" /><button class="btnSearch">
+                    搜索
+                </button>
+            </div>
+            <!-- 搜索建议列表 -->
+            <div id="suggest-list">
+                <!-- <div class="suggest-item">萝卜</div> -->
+            </div>
+        </div>
+    </div>
+    <!-- 设置用于进行建议列表生成的模板 -->
+    <script type="text/template" id="suggest">
+    {{each result val}}
+      <div class="suggest-item">{{val[0]}}</div>
+    {{/each}}
+
+  </script>
+
+
+    <script>
+        /*
+          步骤：
+            1 通过keyup事件监听用户的输入操作
+            2 检测内容是否为空
+            3 通过JSONP请求方式，请求taobao的搜索建议
+            4 通过模板引擎根据数据进行结构创建
+        */
+
+        // 添加事件
+        $('#ipt').on('keyup', function () {
+            var val = $(this).val().trim();
+            // 如果内容为空,将建议列表的内容清空并隐藏
+            if (val === '') {
+                $('#suggest-list').empty().hide();
+            }
+
+            // 使用JSONP方式请求淘宝的数据
+            $.ajax({
+                url: 'https://suggest.taobao.com/sug',
+                data: { q: val },   //淘宝的这个接口指定了请求参数为q,代表要查询的内容
+                dataType: 'jsonp',   //使用jsonp方式发送请求
+                success: function (res) {
+                    // console.log(res);
+
+                    // 检测是否获取到了可以展示的数据
+                    if (res.result.length === 0) {
+                        $('#suggest-list').empty().hide();
+                    }
+                    // 通过模板引擎进行建议列表结构生成
+                    var htmlStr = template('suggest', res)
+                    $('#suggest-list').html(htmlStr).show();
+                }
+
+
+            })
+
+
+
+
+        })
+
+    </script>
+</body>
+
+</html>
