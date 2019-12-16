@@ -60,8 +60,21 @@
         setInterval(function () {
             cacheObj = {};
         }, 10000)
+        // 防抖
+        // 多次进行输入操作,每次都需要请求发送,有些请求是没有必要发送的
+        // 设置防抖可以减少页面中不必要的请求次数
+        // 设置方式：
+        // 请求发送操作不是直接进行的,而是通过定时器控制 setTimeout
+        // 设置一个指定的时间间隔
+        // 当间隔事件中再次进行了输入，重置定时器（将旧的定时器清除）
+        var timer = null;   //用来保存设置防抖的定时器id
+
         // 添加事件
         $('#ipt').on('keyup', function () {
+            // 再次输入时,清除上次的定时器
+            clearTimeout(timer);
+
+            // 获取用户输入的内容
             var val = $(this).val().trim();
             // 如果内容为空,将建议列表的内容清空并隐藏
             if (val === '') {
@@ -73,7 +86,15 @@
                 renderList(cacheObj[val]);
                 return;
             }
+            // 通过定时器控制，使用jsonp方式请求淘宝数据
+            timer = setTimeout(function () {
+                getData(val);
+            }, 100);
+        });
 
+
+        // 封装函数用来进行数据请求
+        function getData(val) {
             // 使用JSONP方式请求淘宝的数据
             $.ajax({
                 url: 'https://suggest.taobao.com/sug',
@@ -81,13 +102,10 @@
                 dataType: 'jsonp',   //使用jsonp方式发送请求
                 success: function (res) {
                     // console.log(res);
-
                     renderList(res);
                 }
-
-
             })
-        })
+        }
 
         // 封装函数,用来给建议列表生成结构
         function renderList(res) {
